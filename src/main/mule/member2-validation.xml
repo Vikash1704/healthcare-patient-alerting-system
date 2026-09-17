@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="validatePatientSubflow" doc:id="97b01cc4-45bd-485f-9c29-abd06aa84250" >
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="bc69d73a-2cff-47c5-8fab-f96c67ed67b6" value="#[payload.patientId]"/>
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="412a8ad3-84a0-4893-844d-ce4e5d785caf" value="#[payload.name]"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="b5f70528-5b97-4db6-9714-c2d8a0ae063c" value="#[payload.age]"/>
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="ec79deca-8bf2-474e-92ac-c4fca04be847" value="#[payload.gender]"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="1edd453a-f63f-411a-b1d4-854fc5434d02" value="#[payload.heartRate]"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="3da35e8c-5c0d-455f-a92b-5896c676b2c4" value="#[payload.temperature]"/>
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="ae6af5df-8ad8-4477-969c-540bad4482c0" value="#[payload.status]"/>
+	</sub-flow>
+</mule>
