@@ -1,0 +1,72 @@
+#%RAML 1.0
+
+title: Healthcare Patient API
+version: v1
+baseUri: http://localhost:8081/api
+
+types:
+
+  Patient:
+    type: object
+    properties:
+      patientId:
+        type: string
+        required: true
+
+      name:
+        type: string
+        required: true
+
+      age:
+        type: integer
+        required: true
+
+      gender:
+        type: string
+        required: true
+
+      heartRate:
+        type: integer
+        required: true
+
+      temperature:
+        type: number
+        required: true
+
+      status:
+        type: string
+        required: true
+        enum:
+          - Critical
+          - Stable
+
+/patients:
+  post:
+    description: Register a new patient
+
+    body:
+      application/json:
+        type: Patient
+        example:
+          patientId: "P1001"
+          name: "Rahul"
+          age: 45
+          gender: "Male"
+          heartRate: 120
+          temperature: 39.5
+          status: "Critical"
+
+    responses:
+
+      201:
+        body:
+          application/json:
+            example:
+              message: "Patient registered successfully"
+              patientId: "P1001"
+
+      400:
+        body:
+          application/json:
+            example:
+              message: "Invalid patient payload"
