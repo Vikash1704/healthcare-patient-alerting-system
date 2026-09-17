@@ -126,16 +126,40 @@ output application/json
         </error-handler>
     </flow>
     <flow name="post:\patients:application\json:member1-patient-api-config">
-        <ee:transform doc:name="Transform Message">
+        <flow-ref doc:name="Flow Reference" doc:id="e810f782-2bc3-494d-8ad6-1dad05cd2f8a" name="validatePatientSubflow"/>
+		<ee:transform doc:name="Transform Message" doc:id="78be6b07-9fd8-47e2-a0f2-a3714b0c7c80" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    patientId: payload.patientId,
+    name: payload.name,
+    age: payload.age,
+    gender: payload.gender,
+    heartRate: payload.heartRate,
+    temperature: payload.temperature,
+    status: upper(payload.status)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Patient Status Routing" doc:id="045eb080-7839-4038-af0e-772db0f26838" >
+			<when expression='#[payload.status == "CRITICAL"]'>
+				<logger level="INFO" doc:name="Critical Patient Detected" doc:id="841ae468-1bb5-4015-876f-f68fd9e5c24d" message="#[payload.patientId]"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
   message: "Patient registered successfully",
-  patientId: "P1001"
+  patientId: payload.patientId
 } as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+			</otherwise>
+		</choice>
     </flow>
 </mule>
