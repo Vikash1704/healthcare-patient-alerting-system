@@ -148,6 +148,8 @@ output application/json
 				<logger level="INFO" doc:name="Critical Patient Detected" doc:id="841ae468-1bb5-4015-876f-f68fd9e5c24d" message="#[payload.patientId]"/>
 			</when>
 			<otherwise >
+				<set-variable value="#[payload.patientId]" doc:name="Set Variable" doc:id="ebcdb985-c9fb-4954-86ca-c9f1c61997a5" variableName="patientId"/>
+				<flow-ref doc:name="Insert Patient" doc:id="a55e4527-00d8-4434-b8e6-e17f858e2cc9" name="insertPatientSubflow"/>
 				<ee:transform doc:name="Transform Message">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
@@ -155,7 +157,7 @@ output application/json
 ---
 {
   message: "Patient registered successfully",
-  patientId: payload.patientId
+  patientId: vars.patientId
 } as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>

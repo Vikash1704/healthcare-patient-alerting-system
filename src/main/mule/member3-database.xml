@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="684911f0-09d4-4003-8e39-0ea35381787f" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="${db.password}" database="healthcare_db" />
+	</db:config>
+	<sub-flow name="insertPatientSubflow" doc:id="3f1bfd44-1e6c-40a4-99c3-7a35889e497f" >
+		<db:insert doc:name="Insert Patient" doc:id="8211e07c-fb5f-47b3-98b2-acdd0f76ab0e" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO patients
+(patient_id, name, age, gender, heart_rate, temperature, status)
+VALUES
+(:patientId, :name, :age, :gender, :heartRate, :temperature, :status)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    patientId: payload.patientId,
+    name: payload.name,
+    age: payload.age,
+    gender: payload.gender,
+    heartRate: payload.heartRate,
+    temperature: payload.temperature,
+    status: payload.status
+}]]]></db:input-parameters>
+		</db:insert>
+	</sub-flow>
+	<sub-flow name="getPatientByIdSubflow" doc:id="1ee4e554-613c-4a2d-97aa-3e08d14d5f6a" >
+		<db:select doc:name="Get Patient By ID" doc:id="049ad92d-6e92-462d-ada5-825b0fa18d4b" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT patient_id, name, age, gender, heart_rate, temperature, status
+FROM patients
+WHERE patient_id = :patientId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    patientId: payload.patientId
+}]]]></db:input-parameters>
+		</db:select>
+	</sub-flow>
+	<flow name="testPatientLookupFlow" doc:id="49c1d348-6cdf-40c6-9d54-3c935aa3af02" >
+		<http:listener doc:name="Listener" doc:id="b1c4a9f3-0681-4c75-8c53-257be7b111dd" config-ref="member1-patient-api-httpListenerConfig" path="/test-patient"/>
+		<set-payload value='#[patientId: "P3001"]' doc:name="Set Payload" doc:id="419011a9-6595-4479-bcf2-641e5603b6ea" />
+		<flow-ref doc:name="Test Patient Lookup" doc:id="9ecc5ec5-e3b1-4cc2-ae22-71a83fea0710" name="getPatientByIdSubflow"/>
+		<ee:transform doc:name="Transform Message" doc:id="586188dd-6041-42e6-a753-7980b65a5544" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
