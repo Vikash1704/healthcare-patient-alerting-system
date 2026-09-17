@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_3f1bfd44_1e6c_40a4_99c3_7a35889e497f_Input_Payload = {|
+  patientId: Any, 
+  name: Any, 
+  age: Any, 
+  gender: Any, 
+  heartRate: Any, 
+  temperature: Any, 
+  status: Any
+|}
+

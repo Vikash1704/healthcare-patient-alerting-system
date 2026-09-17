@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_1ee4e554_613c_4a2d_97aa_3e08d14d5f6a_Input_Payload = {| patientId: String |}
+
