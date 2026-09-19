@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="3431b77e-2eeb-4d21-abeb-08086f77943e" >
+		<file:connection workingDir="C:\Users\vikash\AnypointStudio\studio-workspace\healthcarepatientalertingsystem-member4" />
+	</file:config>
+	<email:smtp-config
+    name="Email_SMTP"
+    from="inapanuribanny@gmail.com">
+		<email:smtps-connection host="smtp.gmail.com" user="inapanuribanny@gmail.com" password="ntcd rfoe fmoe frlc" >
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</email:smtps-connection>
+
+
+</email:smtp-config>
+	<flow name="member4-critical-alertFlow" doc:id="10fac6fc-20bd-4cfd-a4a2-463a7da9992d" >
+		<amqp:listener doc:name="Listener" doc:id="05288638-58d6-4562-a054-135d951f925e" config-ref="AMQP_Config" queueName="critical-patient-queue" ackMode="AUTO"/>
+		<logger level="INFO" doc:name="Logger" doc:id="71319c77-6b5f-41fc-9142-c7250016f554" message='#["AMQP MESSAGE RECEIVED: " ++ write(payload, "application/json")]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="99260b2d-85ab-4699-9b4f-2ab30e670593" name="getPatientByIdSubflow"/>
+		<ee:transform doc:name="Transform Message" doc:id="c4712d98-9c72-4871-b027-d01574a04c33" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="ab2771c3-2226-42b8-aa93-eb8cc698e57f" variableName="patientRecord"/>
+		<logger level="INFO" doc:name="Logger" doc:id="57f7fb78-145f-4052-a86a-87da77fcc467" message='#[write(vars.patientRecord, "application/json")]'/>
+		<file:write doc:name="Write" doc:id="a7f0ec38-ba54-435d-94f6-ecff923e01e7" config-ref="File_Config" path="audit/critical-patient.log">
+		</file:write>
+		<email:send doc:name="Send" doc:id="ebbddd8e-73df-446d-a3ad-044579075ac3" config-ref="Email_SMTP" subject="CRITICAL PATIENT ALERT">
+		 <email:to-addresses>
+        <email:to-address value="inapanuribanny@gmail.com"/>
+    </email:to-addresses>
+
+			<email:body contentTransferEncoding="7bit" >
+				<email:content ><![CDATA[#["CRITICAL PATIENT ALERT\n\n" ++
+"Patient ID: " ++ (vars.patientRecord.patient_id as String) ++ "\n" ++
+"Name: " ++ (vars.patientRecord.name as String) ++ "\n" ++
+"Age: " ++ (vars.patientRecord.age as String) ++ "\n" ++
+"Gender: " ++ (vars.patientRecord.gender as String) ++ "\n" ++
+"Heart Rate: " ++ (vars.patientRecord.heart_rate as String) ++ "\n" ++
+"Temperature: " ++ (vars.patientRecord.temperature as String) ++ "\n" ++
+"Status: " ++ (vars.patientRecord.status as String) ]]]></email:content>
+			</email:body>
+		</email:send>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d1fad418-7f97-41a0-be10-ba33167951f3" >
+				<logger level="INFO" doc:name="Logger" doc:id="f655752c-de44-4c97-8023-3e95d30a99a6" message="CRITICAL ALERT FLOW FAILED: #[error.description]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
