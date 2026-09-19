@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
-http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+<mule xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd">
     <http:listener-config name="member1-patient-api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="member1-patient-api-config" api="member1-patient-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" parser="RAML"/>
     <api-gateway:autodiscovery apiId="21179679" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="1df38f2f-b3b9-447b-8fb0-4fb412759686" flowRef="member1-patient-api-main" />
+	<amqp:config name="AMQP_Config" doc:name="AMQP Config" doc:id="323e64ba-2fe4-418a-98f7-73acc1e94f22" >
+		<amqp:connection host="localhost" port="5672" username="guest" password="guest" />
+	</amqp:config>
 	<flow name="member1-patient-api-main">
         <http:listener config-ref="member1-patient-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -146,6 +150,12 @@ output application/json
 		<choice doc:name="Patient Status Routing" doc:id="045eb080-7839-4038-af0e-772db0f26838" >
 			<when expression='#[payload.status == "CRITICAL"]'>
 				<logger level="INFO" doc:name="Critical Patient Detected" doc:id="841ae468-1bb5-4015-876f-f68fd9e5c24d" message="#[payload.patientId]"/>
+				<flow-ref doc:name="Flow Reference" doc:id="39592b89-fd66-4ccd-a3b8-97fd28d17739" name="insertPatientSubflow" target="insertResult"/>
+				<amqp:publish doc:name="Publish" doc:id="696b9c45-93a5-4056-b8c1-762241c2a1e4" config-ref="AMQP_Config">
+					<amqp:routing-keys >
+						<amqp:routing-key value="critical-patient-queue" />
+					</amqp:routing-keys>
+				</amqp:publish>
 			</when>
 			<otherwise >
 				<set-variable value="#[payload.patientId]" doc:name="Set Variable" doc:id="ebcdb985-c9fb-4954-86ca-c9f1c61997a5" variableName="patientId"/>
