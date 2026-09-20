@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 	<email:smtp-config
     name="Email_SMTP"
     from="inapanuribanny@gmail.com">
-		<email:smtps-connection host="smtp.gmail.com" user="inapanuribanny@gmail.com" password="***REMOVED***" >
+		<email:smtps-connection host="smtp.gmail.com" user="inapanuribanny@gmail.com" password="${email.password}" >
 			<tls:context >
 				<tls:trust-store insecure="true" />
 			</tls:context>

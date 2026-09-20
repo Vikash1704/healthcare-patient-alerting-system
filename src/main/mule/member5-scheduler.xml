@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="member5-schedulerFlow" doc:id="76d38798-dfbb-47ed-8f8d-1675869f6fc6" >
+		<scheduler doc:name="Scheduler" doc:id="61443aff-73a1-4225-b8d5-c488f54340e3" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<db:select doc:name="Select" doc:id="8cef1460-1a89-49ab-8a49-f5960b33f2a7" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT
+    patient_id,
+    name,
+    age,
+    gender,
+    heart_rate,
+    temperature,
+    status
+FROM patients;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="7ad724d2-6ec2-4626-bb6e-5d752b3a611d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    reportDate: now() as String {format: "yyyy-MM-dd"},
+    totalPatients: sizeOf(payload),
+    criticalPatients: sizeOf(payload filter ((patient) -> patient.status == "CRITICAL")),
+    stablePatients: sizeOf(payload filter ((patient) -> patient.status == "STABLE")),
+    criticalPatientDetails: payload filter ((patient) -> patient.status == "CRITICAL")
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f3419b38-4571-47eb-9fe2-cfd8d26d7a7a" message='#["DAILY HEALTH REPORT: " ++ write(payload, "application/json")]'/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="420ce435-96bd-4e09-93e9-5dcf125397e4" >
+				<logger level="ERROR" doc:name="Scheduler Error Logger" doc:id="8ea1c0fa-cea5-4661-9e78-3bf2957354fc" message='#["DAILY HEALTH REPORT FAILED: " ++ error.description]'/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

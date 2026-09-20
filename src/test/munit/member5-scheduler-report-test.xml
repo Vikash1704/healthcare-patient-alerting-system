@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="member5-scheduler-report-test.xml" />
+	<munit:test name="member5-scheduler-report-test-member5-schedulerFlowTest" doc:id="a77e1eed-7dc3-4c97-b4d3-dca59ee26f38" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to member5-schedulerFlow" doc:id="983b3b06-ba4a-4f83-8715-96e8497e75fb" name="member5-schedulerFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="2dd99ea3-51dd-4b97-b512-ccac738b270c" message="Critical and stable patient counts must equal total patients" expression="#[payload.criticalPatients + payload.stablePatients == payload.totalPatients]" is="#[MunitTools::equalTo(true)]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
