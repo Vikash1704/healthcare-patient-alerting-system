@@ -194,7 +194,9 @@ This project is intended for **educational and development purposes**. It should
 ## 👨‍💻 Contributors
 
 - **Vikash1704** — Project Repository Owner
-- Project contributors
+- MADDI YASASWI
+- INDUSRI
+- TEAM MEMBERS
 
 ## 📄 License
 
